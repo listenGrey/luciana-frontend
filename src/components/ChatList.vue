@@ -71,14 +71,6 @@ export default {
     },
     async newChat() {
       try {
-        // 生成临时chatId
-        const tempChatId = `new_chat_${Date.now()}`;
-
-        // 在chat-list中创建临时对话
-        const tempChat = { cid: tempChatId, name: 'New Chat', qas: [] };
-        this.chats.unshift(tempChat);  // 在顶部插入
-        this.selectChat(tempChatId);   // 设为当前选中的对话
-
         const token = localStorage.getItem('jwtToken'); // 获取JWT
         const response = await axios.post("http://localhost:8083/api/v1/new_chat", {
         }, {
@@ -89,11 +81,7 @@ export default {
         });
         if (response.status === 200) {
           if (response.data.code === 200) {
-            const realCid = response.data.data.cid
-
-            this.updateCid(tempChatId, realCid)
-            //this.chats.unshift({cid:response.data.data.cid, name: 'New Chat'});
-            //this.$emit('selectChat', response.data.data.cid);
+            this.chats.unshift({cid:response.data.data.cid, name: 'New Chat'});
           } else {
             alert("新建对话失败，请重试")
           }
@@ -165,7 +153,7 @@ export default {
     },
     updateCid(tempChatId, realChatId) {
       // 查找临时对话并更新chatId
-      const chat = this.chats.find(c => c.chatId === tempChatId);
+      const chat = this.chats.find(chat => chat.cid === tempChatId);
       if (chat) {
         chat.chatId = realChatId;
       }

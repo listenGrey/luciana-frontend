@@ -49,7 +49,7 @@ export default {
           if (response.data.code === 200) {
             // 注册成功，跳转到登录
             alert("注册成功，请登录");
-            this.$router.push("/login");
+            this.$router.push("/");
           } else {
             // 注册失败，显示错误信息
             alert(response.data.msg || "注册失败，请重试");

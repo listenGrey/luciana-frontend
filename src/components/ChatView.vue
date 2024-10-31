@@ -1,7 +1,10 @@
 <template>
   <div class="chat-view" ref="chatView">
-    <div v-if="chatId !== null || qas.length === 0" class="empty-msg">
-      <h1>有什么可以帮你的</h1>
+    <div v-if="chatId === null" class="empty-msg">
+      有什么可以帮你的
+    </div>
+    <div v-if="chatId !== null && qas.length === 0" class="empty-msg">
+      Hello, 说点什么......
     </div>
 
     <!-- 加载动画 -->
@@ -10,10 +13,12 @@
     </div>
 
     <div v-else class="qa-container">
-      <div v-for="(qa, index) in qas" :key="index" class="qa-pair">
-        <div class="request">{{ qa.request }}</div>
-        <!-- 渲染 response 为 Markdown 格式 -->
-        <div class="response" v-html="renderMarkdown(qa.response)"></div>
+      <div v-if="qas.length > 0">
+        <div v-for="(qa, index) in qas" :key="index" class="qa-pair">
+          <div class="request">{{ qa.request }}</div>
+          <!-- 渲染 response 为 Markdown 格式 -->
+          <div class="response" v-html="renderMarkdown(qa.response)"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -73,9 +78,14 @@ export default {
         });
         if (response.status === 200) {
           if (response.data.code === 200) {
-            this.qas = response.data.data.qas;
+            if (response.data.data.qas === null) {
+              this.qas = []
+            } else {
+              this.qas = response.data.data.qas;
+            }
+
           } else {
-            alert("无法加载对话内容，请重试"+response.data.code+response.data.msg)
+            alert("无法加载对话内容，请重试")
           }
         } else {
           alert("网络错误，请稍后再试")
@@ -86,9 +96,14 @@ export default {
     },
     async sendQa(){
       if (!this.userInput.trim()) return; // 如果输入为空，不执行发送
+      if (!this.qas) {
+        this.qas = []
+      }
+
       // 将用户问题添加到对话中
-      const userMessage = { request: this.userInput, response: '' };
-      this.qas.push(userMessage);
+      const curMessage = { request: this.userInput, response: '' };
+      this.qas.push(curMessage);
+      //alert(this.qas)
       this.isLoading = true
 
       try {
@@ -104,7 +119,7 @@ export default {
         });
         if (response.status === 200) {
           if (response.data.code === 200) {
-            userMessage.response = response.data.data
+            curMessage.response = response.data.data
             // 清空输入框
             this.userInput = '';
 
@@ -136,7 +151,7 @@ export default {
     }
   },
   mounted() {
-    if (this.chatId) {
+    if (this.chatId !== null) {
       this.fetchQAs(this.chatId)
     }
   },
